@@ -1,4 +1,4 @@
-`use strict`;
+'use strict';
 
 const TASKS_COUNT = 3;
 const mainEl = document.querySelector(`.main`);
