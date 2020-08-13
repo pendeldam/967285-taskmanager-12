@@ -1,4 +1,6 @@
-export const createSiteMenuMarkup = () => {
+import {createElement} from "../utils";
+
+const createSiteMenuMarkup = () => {
   return (
     `<section class="control__btn-wrap">
       <input
@@ -28,3 +30,25 @@ export const createSiteMenuMarkup = () => {
     </section>`
   );
 };
+
+export default class SiteMenu {
+  constructor() {
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createSiteMenuMarkup();
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}
