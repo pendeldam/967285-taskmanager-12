@@ -22,7 +22,7 @@ export default class Board {
     this._renderedTaskCount = TASK_COUNT_PER_STEP;
     this._handleLoadMoreButtonClick = this._handleLoadMoreButtonClick.bind(this);
     this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
-    this._cuurentSortType = SortType.DEFAULT;
+    this._currentSortType = SortType.DEFAULT;
   }
 
   init(boardTasks) {
