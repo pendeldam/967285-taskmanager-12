@@ -185,14 +185,14 @@ export default class TaskEdit extends SmartView {
     }
   }
 
-  _colorChangeHandler(evt) {
-    evt.preventDefault();
-    this.updateData({color: evt.target.value});
-  }
-
   restoreHandlers() {
     this._setInnerHandlers();
     this.setFormSubmitHandler(this._callback.formSubmit);
+  }
+
+  _colorChangeHandler(evt) {
+    evt.preventDefault();
+    this.updateData({color: evt.target.value});
   }
 
   _descriptionInputHandler(evt) {
@@ -200,16 +200,6 @@ export default class TaskEdit extends SmartView {
     this.updateData({
       description: evt.target.value
     }, true);
-  }
-
-  _formSubmitHandler(evt) {
-    evt.preventDefault();
-    this._callback.formSubmit(TaskEdit.parseDataToTask(this._data));
-  }
-
-  setFormSubmitHandler(callback) {
-    this._callback.formSubmit = callback;
-    this.getElement().querySelector(`form`).addEventListener(`submit`, this._formSubmitHandler);
   }
 
   _repeatingChangeHandler(evt) {
@@ -238,6 +228,15 @@ export default class TaskEdit extends SmartView {
     });
   }
 
+  _formSubmitHandler(evt) {
+    evt.preventDefault();
+    this._callback.formSubmit(TaskEdit.parseDataToTask(this._data));
+  }
+
+  setFormSubmitHandler(callback) {
+    this._callback.formSubmit = callback;
+    this.getElement().querySelector(`form`).addEventListener(`submit`, this._formSubmitHandler);
+  }
 
   static parseTaskToData(task) {
     return Object.assign({}, task, {
