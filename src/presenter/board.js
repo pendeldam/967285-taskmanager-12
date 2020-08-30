@@ -7,46 +7,56 @@ import LoadMoreButtonView from '../view/load-more-button.js';
 import {sortTaskUp, sortTaskDown} from "../utils/task.js";
 import {SortType, UserAction, UpdateType} from '../const.js';
 import {render, remove, RenderPosition} from '../utils/render.js';
+import {filter} from '../utils/filter.js';
 
 const TASK_COUNT_PER_STEP = 8;
 
 export default class Board {
-  constructor(boardContainer, tasksModel) {
+  constructor(boardContainer, tasksModel, filterModel) {
     this._boardContainer = boardContainer;
     this._tasksModel = tasksModel;
+    this._filterModel = filterModel;
     this._taskPresenter = {};
-    this._boardComponent = new BoardView();
-    this._sortComponent = null;
-    this._taskListComponent = new TaskListView();
-    this._noTaskComponent = new NoTaskView();
-    this._loadMoreButtonComponent = null;
     this._currentSortType = SortType.DEFAULT;
     this._renderedTaskCount = TASK_COUNT_PER_STEP;
 
-    this._handleLoadMoreButtonClick = this._handleLoadMoreButtonClick.bind(this);
-    this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
-    this._handleModeChange = this._handleModeChange.bind(this);
+    this._boardComponent = new BoardView();
+    this._taskListComponent = new TaskListView();
+    this._noTaskComponent = new NoTaskView();
+    this._sortComponent = null;
+    this._loadMoreButtonComponent = null;
+
+
     this._handleModelEvent = this._handleModelEvent.bind(this);
     this._handleViewAction = this._handleViewAction.bind(this);
-
-    this._tasksModel.addObserver(this._handleModelEvent);
-  }
-
-  _getTasks() {
-    switch (this._currentSortType) {
-      case SortType.DATE_UP:
-        return this._tasksModel.getTasks().slice().sort(sortTaskUp);
-      case SortType.DATE_DOWN:
-        return this._tasksModel.getTasks().slice().sort(sortTaskDown);
-    }
-
-    return this._tasksModel.getTasks();
+    this._handleModeChange = this._handleModeChange.bind(this);
+    this._handleLoadMoreButtonClick = this._handleLoadMoreButtonClick.bind(this);
+    this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
   }
 
   init() {
     render(this._boardContainer, this._boardComponent, RenderPosition.BEFOREEND);
     render(this._boardComponent, this._taskListComponent, RenderPosition.BEFOREEND);
+
+    this._tasksModel.addObserver(this._handleModelEvent);
+    this._filterModel.addObserver(this._handleModelEvent);
+
     this._renderBoard();
+  }
+
+  _getTasks() {
+    const filterType = this._filterModel.getFilter();
+    const tasks = this._tasksModel.getTasks();
+    const filtredTasks = filter[filterType](tasks);
+
+    switch (this._currentSortType) {
+      case SortType.DATE_UP:
+        return filtredTasks.sort(sortTaskUp);
+      case SortType.DATE_DOWN:
+        return filtredTasks.sort(sortTaskDown);
+    }
+
+    return filtredTasks;
   }
 
   _handleViewAction(actionType, updateType, update) {
