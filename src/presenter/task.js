@@ -34,7 +34,6 @@ export default class Task {
     this._taskComponent = new TaskView(task);
     this._taskEditComponent = new TaskEditView(task);
 
-
     this._taskComponent.setEditClickHandler(this._handleEditClick);
     this._taskEditComponent.setFormSubmitHandler(this._handleFormSubmit);
     this._taskComponent.setFavoriteClickHandler(this._handleFavoriteClick);

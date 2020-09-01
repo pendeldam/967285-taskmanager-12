@@ -2,10 +2,11 @@ import BoardView from '../view/board.js';
 import SortView from '../view/sort.js';
 import TaskListView from '../view/task-list.js';
 import TaskPresenter from './task.js';
+import TaskNewPresenter from "./task-new.js";
 import NoTaskView from '../view/no-task.js';
 import LoadMoreButtonView from '../view/load-more-button.js';
 import {sortTaskUp, sortTaskDown} from "../utils/task.js";
-import {SortType, UserAction, UpdateType} from '../const.js';
+import {SortType, UserAction, UpdateType, FilterType} from '../const.js';
 import {render, remove, RenderPosition} from '../utils/render.js';
 import {filter} from '../utils/filter.js';
 
@@ -32,16 +33,24 @@ export default class Board {
     this._handleModeChange = this._handleModeChange.bind(this);
     this._handleLoadMoreButtonClick = this._handleLoadMoreButtonClick.bind(this);
     this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
+
+    this._tasksModel.addObserver(this._handleModelEvent);
+    this._filterModel.addObserver(this._handleModelEvent);
+
+    this._taskNewPresenter = new TaskNewPresenter(this._taskListComponent, this._handleViewAction);
   }
 
   init() {
     render(this._boardContainer, this._boardComponent, RenderPosition.BEFOREEND);
     render(this._boardComponent, this._taskListComponent, RenderPosition.BEFOREEND);
 
-    this._tasksModel.addObserver(this._handleModelEvent);
-    this._filterModel.addObserver(this._handleModelEvent);
-
     this._renderBoard();
+  }
+
+  createTask() {
+    this._currentSortType = SortType.DEFAULT;
+    this._filterModel.setFilter(UpdateType.MAJOR, FilterType.ALL);
+    this._taskNewPresenter.init();
   }
 
   _getTasks() {
@@ -90,6 +99,8 @@ export default class Board {
   }
 
   _handleModeChange() {
+    this._taskNewPresenter.destroy();
+
     Object
       .values(this._taskPresenter)
       .forEach((presenter) => presenter.resetView());
@@ -118,6 +129,7 @@ export default class Board {
 
   _clearBoard({resetRenderedTaskCount = false, resetSortType = false} = {}) {
     const taskCount = this._getTasks().length;
+    this._taskNewPresenter.destroy();
 
     Object.values(this._taskPresenter)
       .forEach((presenter) => presenter.destroy());
