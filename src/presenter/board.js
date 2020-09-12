@@ -2,7 +2,7 @@ import LoadingView from "../view/loading.js";
 import BoardView from '../view/board.js';
 import SortView from '../view/sort.js';
 import TaskListView from '../view/task-list.js';
-import TaskPresenter from './task.js';
+import TaskPresenter, {State as TaskPresenterViewState} from './task.js';
 import TaskNewPresenter from "./task-new.js";
 import NoTaskView from '../view/no-task.js';
 import LoadMoreButtonView from '../view/load-more-button.js';
@@ -82,15 +82,22 @@ export default class Board {
   _handleViewAction(actionType, updateType, update) {
     switch (actionType) {
       case UserAction.UPDATE_TASK:
-        this._api.updateTask(update).then((response) => {
-          this._tasksModel.updateTask(updateType, response);
-        });
+        this._taskPresenter[update.id].setViewState(TaskPresenterViewState.SAVING);
+        this._api.updateTask(update)
+          .then((response) => this._tasksModel.updateTask(updateType, response))
+          .catch(() => this._taskPresenter[update.id].setViewState(TaskPresenterViewState.ABORTING));
         break;
       case UserAction.ADD_TASK:
-        this._tasksModel.addTask(updateType, update);
+        this._taskPresenter.setSaving();
+        this._api.addTask(update)
+          .then((response) => this._tasksModel.addTask(updateType, response))
+          .catch(() => this._taskPresenter.setAborting());
         break;
       case UserAction.DELETE_TASK:
-        this._tasksModel.deleteTask(updateType, update);
+        this._taskPresenter[update.id].setViewState(TaskPresenterViewState.DELETING);
+        this._api.deleteTask(update)
+          .then(() => this._tasksModel.deleteTask(updateType, update))
+          .catch(() => this._taskPresenter[update.id].setViewState(TaskPresenterViewState.ABORTING));
         break;
     }
   }

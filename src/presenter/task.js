@@ -6,7 +6,13 @@ import {isTaskRepeating, isDatesEqual} from '../utils/task.js';
 
 const Mode = {
   DEFAULT: `DEFAULT`,
-  EDITING: `EDITING`
+  EDITING: `EDITING`,
+  ABORTING: `ABORTING`
+};
+
+export const State = {
+  SAVING: `SAVING`,
+  DELETING: `DELETING`
 };
 
 export default class Task {
@@ -50,7 +56,8 @@ export default class Task {
     }
 
     if (this._mode === Mode.EDITING) {
-      replace(this._taskEditComponent, prevTaskEditComponent);
+      replace(this._taskComponent, prevTaskEditComponent);
+      this._mode = Mode.DEFAULT;
     }
 
     remove(prevTaskComponent);
@@ -68,6 +75,34 @@ export default class Task {
     remove(this._taskEditComponent);
   }
 
+  setViewState(state) {
+    const resetFormState = () => {
+      this._taskEditComponent.updateData({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false
+      });
+    };
+
+    switch (state) {
+      case State.SAVING:
+        this._taskEditComponent.updateData({
+          isDisabled: true,
+          isSaving: true
+        });
+        break;
+      case State.DELETING:
+        this._taskEditComponent.updateData({
+          isDisabled: true,
+          isDeleting: true
+        });
+        break;
+      case State.ABORTING:
+        this._taskComponent.shake(resetFormState);
+        this._taskEditComponent.shake(resetFormState);
+        break;
+    }
+  }
 
   _replaceCardToForm() {
     replace(this._taskEditComponent, this._taskComponent);
@@ -104,8 +139,6 @@ export default class Task {
         isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH,
         update
     );
-
-    this._replaceFormToCard();
   }
 
   _handleDeleteClick(task) {
