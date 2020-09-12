@@ -88,10 +88,10 @@ export default class Board {
           .catch(() => this._taskPresenter[update.id].setViewState(TaskPresenterViewState.ABORTING));
         break;
       case UserAction.ADD_TASK:
-        this._taskPresenter.setSaving();
+        this._taskNewPresenter.setSaving();
         this._api.addTask(update)
           .then((response) => this._tasksModel.addTask(updateType, response))
-          .catch(() => this._taskPresenter.setAborting());
+          .catch(() => this._taskNewPresenter.setAborting());
         break;
       case UserAction.DELETE_TASK:
         this._taskPresenter[update.id].setViewState(TaskPresenterViewState.DELETING);
