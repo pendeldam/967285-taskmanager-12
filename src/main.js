@@ -6,30 +6,25 @@ import FilterPresenter from './presenter/filter.js';
 import BoardPresenter from './presenter/board.js';
 import {render, RenderPosition, remove} from './utils/render.js';
 import {MenuItem, UpdateType, FilterType} from './const.js';
-import Api from "./api.js";
+import Api from "./api/index.js";
+import Store from "./api/store.js";
+import Provider from "./api/provider.js";
 
 const mainEl = document.querySelector(`.main`);
 
 const AUTHORIZATION = `Basic hS2sd3dfSwcl1sa2j`;
 const END_POINT = `https://12.ecmascript.pages.academy/task-manager`;
+const STORE_PREFIX = `taskmanager-localstorage`;
+const STORE_VER = `v12`;
+const STORE_NAME = `${STORE_PREFIX}-${STORE_VER}`;
+
 const api = new Api(END_POINT, AUTHORIZATION);
-
-api.getTasks()
-  .then((tasks) => {
-    tasksModel.setTasks(UpdateType.INIT, tasks);
-    siteMenuComponent.setMenuClickHandler(handleSiteMenuClick);
-    render(mainEl.querySelector(`.main__control`), siteMenuComponent, RenderPosition.BEFOREEND);
-  })
-  .catch(() => {
-    tasksModel.setTasks(UpdateType.INIT, []);
-    siteMenuComponent.setMenuClickHandler(handleSiteMenuClick);
-    render(mainEl.querySelector(`.main__control`), siteMenuComponent, RenderPosition.BEFOREEND);
-  });
-
+const store = new Store(STORE_NAME, window.localStorage);
+const apiWithProvider = new Provider(api, store);
 const tasksModel = new TasksModel();
 const filterModel = new FilterModel();
 const siteMenuComponent = new SiteMenuView();
-const boardPresenter = new BoardPresenter(mainEl, tasksModel, filterModel, api);
+const boardPresenter = new BoardPresenter(mainEl, tasksModel, filterModel, apiWithProvider);
 const filterPresenter = new FilterPresenter(mainEl, filterModel, tasksModel);
 
 const handleTaskNewFormClose = () => {
@@ -63,3 +58,33 @@ const handleSiteMenuClick = (menuItem) => {
 
 filterPresenter.init();
 boardPresenter.init();
+
+apiWithProvider.getTasks()
+  .then((tasks) => {
+    tasksModel.setTasks(UpdateType.INIT, tasks);
+    siteMenuComponent.setMenuClickHandler(handleSiteMenuClick);
+    render(mainEl.querySelector(`.main__control`), siteMenuComponent, RenderPosition.BEFOREEND);
+  })
+  .catch(() => {
+    tasksModel.setTasks(UpdateType.INIT, []);
+    siteMenuComponent.setMenuClickHandler(handleSiteMenuClick);
+    render(mainEl.querySelector(`.main__control`), siteMenuComponent, RenderPosition.BEFOREEND);
+  });
+
+window.addEventListener(`load`, () => {
+  navigator.serviceWorker.register(`/sw.js`)
+    .then(() => {
+      console.log(`ServiceWorker available`); // eslint-disable-line
+    }).catch(() => {
+      console.error(`ServiceWorker isn't available`); // eslint-disable-line
+    });
+});
+
+window.addEventListener(`online`, () => {
+  document.title = document.title.replace(` [offline]`, ``);
+  apiWithProvider.sync();
+});
+
+window.addEventListener(`offline`, () => {
+  document.title += ` [offline]`;
+});
